@@ -1,7 +1,7 @@
 import React from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { Dashboard } from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import { Properties } from "./pages/Properties";
 import { Leads } from "./pages/Leads";
 import { Landing } from "./pages/Landing";

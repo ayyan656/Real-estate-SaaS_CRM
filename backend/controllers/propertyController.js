@@ -1,4 +1,5 @@
 import Property from "../models/Property.js";
+import { io } from "../server.js";
 import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
@@ -22,7 +23,8 @@ export const createProperty = async (req, res) => {
       agent: req.user?.id,
       images: [],
     });
-
+    // Emit real-time event
+    io.emit("new-property", property);
     res
       .status(201)
       .json({ message: "Property created successfully", property });
@@ -149,11 +151,11 @@ export const updateProperty = async (req, res) => {
       new: true,
       runValidators: true,
     });
-
     if (!property) {
       return res.status(404).json({ message: "Property not found" });
     }
-
+    // Emit real-time event for property update (could include deal closed, etc.)
+    io.emit("property-updated", property);
     res.status(200).json({ message: "Property updated", property });
   } catch (error) {
     res.status(500).json({ message: error.message });

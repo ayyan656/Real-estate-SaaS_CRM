@@ -440,11 +440,15 @@ export const Leads = () => {
       });
     }, [lead]);
 
-    const handleSave = () => {
-      updateLead(lead._id, {
+    // Fix: update UI after saving profile
+    const handleSave = async () => {
+      const payload = {
         ...formData,
+        assignedTo: formData.assignedTo === "" ? null : formData.assignedTo,
         budget: Number(formData.budget),
-      });
+      };
+      await updateLead(lead._id, payload);
+      onClose(); // Close modal immediately after update
       setIsEditing(false);
     };
 
@@ -632,7 +636,7 @@ export const Leads = () => {
                             </button>
                             {AGENTS.map((agent) => (
                               <button
-                                key={agent.id}
+                                key={agent.id || agent.name}
                                 onClick={() => {
                                   setFormData((prev) => ({
                                     ...prev,
@@ -737,25 +741,7 @@ export const Leads = () => {
 
                     <div className="group">
                       <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        <Mail size={14} className="text-slate-400" /> Email
-                      </label>
-                      {isEditing ? (
-                        <Input
-                          value={formData.email}
-                          onChange={(e) =>
-                            setFormData({ ...formData, email: e.target.value })
-                          }
-                        />
-                      ) : (
-                        <p className="text-slate-900 dark:text-slate-100 truncate">
-                          {lead.email}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="group">
-                      <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        <Phone size={14} className="text-slate-400" /> Phone
+                        WhatsApp
                       </label>
                       {isEditing ? (
                         <Input
@@ -765,9 +751,15 @@ export const Leads = () => {
                           }
                         />
                       ) : (
-                        <p className="text-slate-900 dark:text-slate-100">
-                          {lead.phone}
-                        </p>
+                        <a
+                          href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 1.657.336 3.236.995 4.684l-1.032 3.773a1 1 0 0 0 1.243 1.243l3.773-1.032A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm-4.5 16.5.715-.205a7.963 7.963 0 0 0 3.785.98c4.411 0 8-3.589 8-8s-3.589-8-8-8-8 3.589-8 8c0 1.308.314 2.544.905 3.646l-.205.715 1.032-3.773A7.963 7.963 0 0 0 12 20c1.308 0 2.544-.314 3.646-.905l.715-.205-3.773 1.032A7.963 7.963 0 0 0 12 4c-4.411 0-8 3.589-8 8s3.589 8 8 8c1.308 0 2.544-.314 3.646-.905l.715-.205-3.773 1.032A7.963 7.963 0 0 0 12 20c4.411 0 8-3.589 8-8s-3.589-8-8-8-8 3.589-8 8c0 1.308.314 2.544.905 3.646l-.205.715 1.032-3.773A7.963 7.963 0 0 0 12 20z"/></svg>
+                          Chat on WhatsApp
+                        </a>
                       )}
                     </div>
                   </div>
@@ -983,17 +975,17 @@ export const Leads = () => {
                   {column.label}
                 </h3>
                 <span className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm">
-                  {leads.filter((l) => l.status === column.id).length}
+                  {leads.filter((l) => l && l.status === column.id).length}
                 </span>
               </div>
 
               <div className="flex-1 rounded-xl p-2 overflow-y-auto hide-scrollbar bg-slate-50/50 dark:bg-slate-900/20">
                 {leads
-                  .filter((l) => l.status === column.id)
+                  .filter((l) => l && l.status === column.id)
                   .map((lead) => (
                     <KanbanCard key={lead._id} lead={lead} />
                   ))}
-                {leads.filter((l) => l.status === column.id).length === 0 && (
+                {leads.filter((l) => l && l.status === column.id).length === 0 && (
                   <div className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-lg text-slate-400 dark:text-slate-600 text-sm m-1">
                     <span className="mb-1">No Leads</span>
                     <span className="text-xs text-slate-300 dark:text-slate-500">

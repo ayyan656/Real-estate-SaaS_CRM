@@ -1,4 +1,5 @@
 import Lead from "../models/Lead.js";
+import { io } from "../server.js";
 
 // Create lead
 export const createLead = async (req, res) => {
@@ -19,7 +20,8 @@ export const createLead = async (req, res) => {
         },
       ],
     });
-
+    // Emit real-time event
+    io.emit("new-lead", lead);
     res.status(201).json({ message: "Lead created successfully", lead });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -93,6 +95,11 @@ export const updateLeadStatus = async (req, res) => {
 
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
+    }
+
+    // Emit real-time event if lead is closed
+    if (status === "Closed") {
+      io.emit("lead-closed", lead);
     }
 
     res.status(200).json({ message: "Lead status updated", lead });

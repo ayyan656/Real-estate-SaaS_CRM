@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { io as socketIOClient } from "socket.io-client";
 import { Card } from "../components/ui/Card";
 import { DollarSign, Home, Users, TrendingUp } from "lucide-react";
 import {
@@ -11,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useLeads } from "../context/LeadsContext";
+import { useProperties } from "../context/PropertiesContext";
 
 const data = [
   { name: "Jan", revenue: 4000, leads: 24 },
@@ -54,11 +56,59 @@ const formatTimeAgo = (dateString) => {
   return `${days}d ago`;
 };
 
-export const Dashboard = () => {
+function Dashboard() {
   const { leads } = useLeads();
+  const { properties } = useProperties();
+  const [liveLeads, setLiveLeads] = useState(leads);
+  const [liveProperties, setLiveProperties] = useState(properties || []);
+  const [profit, setProfit] = useState(0);
 
-  const recentLeads = leads.slice(0, 5);
-  const newLeadsCount = leads.filter((l) => l.status === "New").length;
+  // Sync liveLeads with context leads whenever leads changes
+  useEffect(() => {
+    setLiveLeads(leads);
+  }, [leads]);
+
+  useEffect(() => {
+    setLiveProperties(properties || []);
+  }, [properties]);
+
+  useEffect(() => {
+    // Connect to backend Socket.IO server
+    const socket = socketIOClient("http://localhost:5000");
+
+    socket.on("new-lead", (lead) => {
+      setLiveLeads((prev) => [lead, ...prev]);
+    });
+
+    socket.on("lead-closed", (lead) => {
+      setLiveLeads((prev) => prev.map(l => l._id === lead._id ? lead : l));
+    });
+
+    socket.on("new-property", (property) => {
+      setLiveProperties((prev) => [property, ...prev]);
+    });
+
+    socket.on("property-updated", (property) => {
+      setLiveProperties((prev) => prev.map(p => p._id === property._id ? property : p));
+      // If property.dealClosed, update profit
+      if (property.status === "Sold" && property.price) {
+        setProfit((prev) => prev + property.price);
+      }
+    });
+
+    // Optionally listen for profit-updated event from backend
+    // socket.on("profit-updated", (newProfit) => {
+    //   setProfit(newProfit);
+    // });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const recentLeads = liveLeads.slice(0, 5);
+  const newLeadsCount = liveLeads.filter((l) => l.status === "New").length;
+  // Removed closedLeads section for cleaner UI
 
   return (
     <div className="space-y-6">
@@ -66,35 +116,35 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Revenue"
-          value="$128,430"
-          trend="+12.5%"
+          value={`$${profit.toLocaleString()}`}
+          trend="Live"
           icon={<DollarSign size={24} />}
           color="bg-primary"
         />
         <StatCard
           title="Active Listings"
-          value="24"
-          trend="+4.2%"
+          value={liveProperties.filter(p => p.status === "Active").length.toString()}
+          trend="Live"
           icon={<Home size={24} />}
           color="bg-accent"
         />
         <StatCard
           title="New Leads"
           value={newLeadsCount.toString()}
-          trend="+28.4%"
+          trend="Live"
           icon={<Users size={24} />}
           color="bg-purple-600"
         />
         <StatCard
-          title="Conversion Rate"
-          value="3.2%"
-          trend="+1.2%"
+          title="Deals Closed"
+          value={liveLeads.filter(l => l.status === "Closed").length.toString()}
+          trend="Live"
           icon={<TrendingUp size={24} />}
           color="bg-orange-500"
         />
       </div>
 
-      {/* Chart Section */}
+      {/* Chart Section & Closed Deals */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card>
@@ -164,7 +214,7 @@ export const Dashboard = () => {
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
               {recentLeads.map((lead) => (
                 <div
-                  key={lead.id}
+                  key={lead._id || lead.id}
                   className="flex gap-3 pb-3 border-b border-gray-100 dark:border-slate-800 last:border-0"
                 >
                   <div className="shrink-0">
@@ -205,4 +255,6 @@ export const Dashboard = () => {
       </div>
     </div>
   );
-};
+}
+
+export default Dashboard;

@@ -30,7 +30,8 @@ export const getLeadById = async (leadId) => {
 // Update lead
 export const updateLead = async (leadId, leadData) => {
   try {
-    return await apiClient.put(`/leads/${leadId}`, leadData);
+    const response = await apiClient.put(`/leads/${leadId}`, leadData);
+    return response.lead;
   } catch (error) {
     throw error;
   }

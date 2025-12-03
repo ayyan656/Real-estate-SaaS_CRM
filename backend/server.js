@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config(); 
 import express from "express";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
 import session from "express-session";
 import "./config/passport.js"; 
@@ -12,6 +14,13 @@ import leadRoutes from "./routes/leadRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:5173"],
+    credentials: true,
+  },
+});
 const PORT = process.env.PORT || 5000;
 
 // CORS
@@ -56,6 +65,15 @@ app.use("*", (req, res) =>
   res.status(404).json({ message: "Route not found" })
 );
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running: http://localhost:${PORT}`);
 });
+
+// Socket.IO connection
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+  // You can emit initial dashboard data here if needed
+});
+
+// Export io for use in controllers/routes
+export { io };
