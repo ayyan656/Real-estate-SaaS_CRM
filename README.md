@@ -10,7 +10,20 @@ A full-featured SaaS CRM platform for real estate businesses, built with Node.js
 - Modern UI with Tailwind CSS
 - Image carousel for property images
 - Context-based state management
+- WhatsApp integration for direct lead contact
+- Real-time dashboard updates using Socket.IO (new leads, closed deals, and activity)
 - Vitest and React Testing Library for frontend tests
+## Real-Time Dashboard & WhatsApp Integration
+
+- **Real-Time Updates:**
+  - The dashboard updates instantly for new leads, closed deals, and recent activity using Socket.IO.
+  - No need to refresh the page to see the latest stats or activity.
+
+- **WhatsApp Integration:**
+  - Each lead profile includes a WhatsApp button for direct chat with the lead.
+  - Phone numbers are formatted for WhatsApp international links.
+
+No extra setup is required for these features beyond running both backend and frontend as described below.
 
 ## Project Structure
 ```
