@@ -70,12 +70,12 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     failureRedirect: `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
+      process.env.FRONTEND_URL || "https://real-estate-saa-s-crm.vercel.app"
     }/plans`,
   }),
   (req, res) => {
     if (!req.user) {
-      return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:3000"}/plans`);
+      return res.redirect(`${process.env.FRONTEND_URL || "https://real-estate-saa-s-crm.vercel.app"}/plans`);
     }
 
     console.log("Google OAuth Callback - User:", {
@@ -98,7 +98,7 @@ router.get(
       { expiresIn: "7d" }
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = process.env.FRONTEND_URL || "https://real-estate-saa-s-crm.vercel.app";
 
     // Redirect to frontend with only token in URL
     res.redirect(`${frontendUrl}/#/dashboard?token=${encodeURIComponent(token)}`);
