@@ -445,7 +445,7 @@ export const Landing = () => {
 
             <button
               onClick={scrollToTop}
-              className="bg-accent hover:bg-blue-700 text-white p-3 rounded-lg shadow-lg transition-transform hover:-translate-y-1"
+              className="bg-accent hover:bg-blue-700 text-white p-3 mr-10 mb-10 rounded-lg shadow-lg transition-transform hover:-translate-y-1"
               aria-label="Scroll to top"
             >
               <ArrowUp size={20} />
