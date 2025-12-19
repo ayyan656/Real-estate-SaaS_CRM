@@ -147,6 +147,68 @@ export const deleteUser = async (req, res) => {
 };
 
 // Google OAuth Login
+// export const googleLogin = async (req, res) => {
+//   try {
+//     const { token } = req.body;
+
+//     if (!token) {
+//       return res.status(400).json({ message: "No token provided" });
+//     }
+
+//     console.log("Google token received, verifying...");
+
+//     // Verify the token with Google
+//     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+//     const ticket = await client.verifyIdToken({
+//       idToken: token,
+//       audience: process.env.GOOGLE_CLIENT_ID,
+//     });
+
+//     const payload = ticket.getPayload();
+//     const { email, name, picture } = payload;
+
+//     console.log("Google token verified for:", email);
+
+//     // Check if user exists
+//     let user = await User.findOne({ email });
+
+//     // Create user if doesn't exist
+//     if (!user) {
+//       console.log("Creating new user:", email);
+//       user = await User.create({
+//         name,
+//         email,
+//         password: "oauth_user", 
+//         avatar: picture,
+//       });
+//     } else {
+//       console.log("User already exists:", email);
+//     }
+
+//     // Generate JWT token
+//     const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+//       expiresIn: "7d",
+//     });
+
+//     res.status(200).json({
+//       message: "Google login successful",
+//       token: jwtToken,
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//         avatar: user.avatar,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Google auth error:", error.message);
+//     res
+//       .status(400)
+//       .json({ message: "Google authentication failed: " + error.message });
+//   }
+// };
+
 export const googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
@@ -154,8 +216,6 @@ export const googleLogin = async (req, res) => {
     if (!token) {
       return res.status(400).json({ message: "No token provided" });
     }
-
-    console.log("Google token received, verifying...");
 
     // Verify the token with Google
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -165,24 +225,27 @@ export const googleLogin = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    const { email, name, picture } = payload;
-
-    console.log("Google token verified for:", email);
+    const { email, name, picture, sub: googleId } = payload;
 
     // Check if user exists
     let user = await User.findOne({ email });
 
     // Create user if doesn't exist
     if (!user) {
-      console.log("Creating new user:", email);
       user = await User.create({
-        name,
+        name: name || "User",
         email,
-        password: "oauth_user", 
+        password: "oauth_user",
         avatar: picture,
+        googleId,
       });
     } else {
-      console.log("User already exists:", email);
+      // If user exists, do not overwrite their stored name.
+      // Optionally update avatar if different:
+      if (picture && user.avatar !== picture) {
+        user.avatar = picture;
+        await user.save();
+      }
     }
 
     // Generate JWT token
@@ -203,8 +266,6 @@ export const googleLogin = async (req, res) => {
     });
   } catch (error) {
     console.error("Google auth error:", error.message);
-    res
-      .status(400)
-      .json({ message: "Google authentication failed: " + error.message });
+    res.status(400).json({ message: "Google authentication failed: " + error.message });
   }
 };
