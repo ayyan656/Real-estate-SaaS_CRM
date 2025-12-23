@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: ["https://real-estate-saa-s-crm.vercel.app", "http://localhost:3000"],
+    origin: "https://real-estate-saa-s-crm.vercel.app",
     credentials: true,
   },
 });
@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 5000;
 // CORS
 app.use(
   cors({
-    origin: ["https://real-estate-saa-s-crm.vercel.app", "http://localhost:3000", "http://localhost:5173"],
+    origin: "https://real-estate-saa-s-crm.vercel.app",
     credentials: true,
   })
 );
