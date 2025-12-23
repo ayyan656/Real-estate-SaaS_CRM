@@ -74,7 +74,7 @@ function Dashboard() {
 
   useEffect(() => {
     // Connect to backend Socket.IO server
-    const socket = socketIOClient("http://localhost:5000");
+    const socket = socketIOClient("https://real-estate-saas-crm.onrender.com");
 
     socket.on("new-lead", (lead) => {
       setLiveLeads((prev) => [lead, ...prev]);
