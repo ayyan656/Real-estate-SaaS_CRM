@@ -74,8 +74,16 @@ function Dashboard() {
 
   useEffect(() => {
     // Connect to backend Socket.IO server
-    const socket = socketIOClient("https://real-estate-saas-crm.onrender.com");
+    const ENDPOINT = "https://real-estate-saas-crm.onrender.com" || "http://localhost:5000";
+    // Connect to backend Socket.IO server
+    const socket = socketIOClient(ENDPOINT, {
+        withCredentials: true,
+        transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
+    });
 
+    socket.on("connect", () => {
+      console.log("Connected to backend");
+    });
     socket.on("new-lead", (lead) => {
       setLiveLeads((prev) => [lead, ...prev]);
     });
